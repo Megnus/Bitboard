@@ -1,0 +1,6 @@
+https://chessprogramming.wikispaces.com/Subtracting%20a%20Rook%20from%20a%20Blocking%20Piece
+https://chessprogramming.wikispaces.com/Files
+https://chessprogramming.wikispaces.com/Bitboard+Serialization
+https://chessprogramming.wikispaces.com/General%20Setwise%20Operations (rotation)
+https://chessprogramming.wikispaces.com/Flipping%20Mirroring%20and%20Rotating (mirroring)
+https://chessprogramming.wikispaces.com/Efficient+Generation+of+Sliding+Piece+Attacks (o  ^ (o - 2s))
