@@ -10,6 +10,7 @@
 #include <stdio.h>      /* printf */
 #include <assert.h>     /* assert */
 #include "byteswap.h"
+#include "tool.h"
 #include <string>
 using namespace std;
 
@@ -60,6 +61,7 @@ class ChessboardIO {
 		}
 
 		static void printBigBoard(uint64_t u64) {
+			u64 = Tool::flipVertical(u64);
 			string border = std::string(5, '_');
 			string space = std::string(5, ' ');
 			string set = "  X  ";
@@ -67,12 +69,13 @@ class ChessboardIO {
 				std::cout << " " << border;
 			}
 			cout << std::endl;
-			uint64_t mask = (uint64_t)0b1 << 63;
+			uint64_t mask = (uint64_t)1;//0b1 << 63;
 			for (int k = 0; k < 8; k++) {
 				for (int j = 0; j < 3; j++) {
 					for (int i = 0; i < 8; i++) {
 						std::cout << "|" << (j == 1 && (u64 & mask) > 0 ? set : (j == 2 ? border : space));
-						mask >>= j == 1 ? 1 : 0;
+
+						mask <<= j == 1 ? 1 : 0;
 					}
 
 					std::cout << "|" << std::endl;
