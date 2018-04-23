@@ -209,20 +209,28 @@ void createLookUpAttacks() {
 
 int main() {
 	createLookUpAttacks();
-	cout << 0b11111111 << endl;
+
 	uint64_t occ = 0b01000100;
 	ChessboardIO::printBigBoard(occ);
 	uint64_t attack = rankAttacks(occ, ChessboardIO::e1);
 	ChessboardIO::printBigBoard(attack);
-	//if (true) return 0;
+
+	ChessboardIO::enumSquare enumSquares[] = {
+			ChessboardIO::f4,
+			ChessboardIO::d4,
+			ChessboardIO::e5,
+			ChessboardIO::end };
+
+	uint64_t board = ChessboardIO::setBoard(enumSquares);
+	ChessboardIO::printBigBoard(board);
 
 	uint64_t u64 = 0b0000000000000000000000000000000000000000000000000001000000000000;
-                 //00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-	uint64_t r = u64;
-	uint64_t o = 0b0001000000010000000000000000000000000000000100000001000000010000;
-	//__bswap_constant_64(u64);
+	uint64_t o   = 0b0001000000010000000000000000000000000000000100000001000000010000;
+	uint64_t r   = u64;
+
+	uint64_t bswap = __bswap_constant_64(u64);
 	ChessboardIO::print(u64);
-	ChessboardIO::print(__bswap_constant_64(u64));
+	ChessboardIO::print(bswap);
 	ChessboardIO::print(Tool::rotate180(u64));
 
 	uint64_t lineAttacks = (o - 2 * r);// ^ rotate180(rotate180(o) - 2 * rotate180(r));
@@ -242,7 +250,6 @@ int main() {
 	x |= rankAttacks(occ, ChessboardIO::f3);
 	ChessboardIO::printBigBoard(x);
 
-
 	x = fileAttacks(o, ChessboardIO::g3);
 	x |= diagonalAttacks(o, ChessboardIO::g3);
 	x |= antiDiagAttacks(o, ChessboardIO::g3);
@@ -251,7 +258,6 @@ int main() {
 	ChessboardIO::printBigBoard(o);
 	ChessboardIO::printBigBoard(x);
 
-	cout << "---------------" << endl;
 	uint64_t u64x = 0x0102030405060708;
 	unsigned long ul = 0x01020304;
 	printf("byteswap of %I64x = %I64x\n", u64x, __bswap_constant_64(u64x));
