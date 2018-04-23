@@ -233,17 +233,10 @@ int main() {
 	ChessboardIO::printBigBoard(board);
 
 	uint64_t u64 = 0b0000000000000000000000000000000000000000000000000001000000000000;
-<<<<<<< HEAD
 	uint64_t o   = 0b0001000000010000000000000000000000000000000100000001000000010000;
 	uint64_t r   = u64;
 
 	uint64_t bswap = __bswap_constant_64(u64);
-=======
-					  //00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-	uint64_t r = u64;
-	uint64_t o = 0b0001000000010000000000000000000000000000000100000001000000010000;
-	//__bswap_constant_64(u64);
->>>>>>> f8b2927382d321224ebfb952d9179327e3d1baef
 	ChessboardIO::print(u64);
 	ChessboardIO::print(bswap);
 	ChessboardIO::print(Tool::rotate180(u64));
@@ -274,8 +267,6 @@ int main() {
 	ChessboardIO::printBigBoard(o);
 	ChessboardIO::printBigBoard(x);
 
-<<<<<<< HEAD
-=======
     uint64_t moveArray[64];
     uint64_t *movePointer = moveArray;
     LS1B(x, movePointer);
@@ -290,7 +281,6 @@ int main() {
         cout << ChessboardIO::getSquare(*(pieceIndexPointer++)) << endl;
     }
 
->>>>>>> f8b2927382d321224ebfb952d9179327e3d1baef
 	uint64_t u64x = 0x0102030405060708;
 	unsigned long ul = 0x01020304;
 	printf("byteswap of %I64x = %I64x\n", u64x, __bswap_constant_64(u64x));
