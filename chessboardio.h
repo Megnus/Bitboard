@@ -17,7 +17,7 @@ using namespace std;
 #ifndef RENDER_H_
 #define RENDER_H_
 
-namespace chessio {
+//namespace chessio {
 
 
 class ChessboardIO {
@@ -103,5 +103,5 @@ class ChessboardIO {
 			}
 		}
 };
-}
+//}
 #endif /* RENDER_H_ */
