@@ -6,6 +6,7 @@
  */
 
 #include "piece.h"
+#include "tool.h"
 
 Piece::Piece() {
 	// TODO Auto-generated constructor stub

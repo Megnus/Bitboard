@@ -14,7 +14,6 @@
 class CBoard {
 private:
 	uint64_t pieceBB[10];
-
 public:
 	enum ColorType {
 		white,
@@ -32,11 +31,14 @@ public:
 		nKing
 	};
 
+	ColorType color;
+
 	//This is broken
 	void setPieceSet(uint64_t u64, EnumPiece piece, ColorType color)  {
-		pieceBB[piece] |= u64;
-		pieceBB[occ + color] |= u64;
-		pieceBB[empty] = ~ pieceBB[occ];
+		pieceBB[color + nKing + 1] = u64;
+		pieceBB[piece] = u64;
+		pieceBB[occ] |= u64;
+		pieceBB[empty] = ~pieceBB[occ];
 	}
 
 	void setPieceSet(ChessboardIO::enumSquare squares[], EnumPiece piece, ColorType color) {
@@ -49,7 +51,7 @@ public:
 	}
 
 	uint64_t getPieceSet(EnumPiece piece, ColorType color) const {
-		return pieceBB[piece] & pieceBB[color];
+		return pieceBB[piece];// & pieceBB[color + nKing + 1];
 	}
 
 	uint64_t getWhitePawns() const {
@@ -62,8 +64,6 @@ public:
 
 	CBoard();
 	virtual ~CBoard();
-
-
 };
 
 #endif /* CBOARD_H_ */

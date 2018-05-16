@@ -15,7 +15,3 @@ Pawn::Pawn() {
 Pawn::~Pawn() {
 	// TODO Auto-generated destructor stub
 }
-
-
-
-

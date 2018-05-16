@@ -8,8 +8,10 @@
 #include "cboard.h"
 
 CBoard::CBoard() {
-	// TODO Auto-generated constructor stub
-
+	this->color = white;
+	for (int index = 0; index < 12; index++) {
+		pieceBB[index] = 0;
+	}
 }
 
 CBoard::~CBoard() {

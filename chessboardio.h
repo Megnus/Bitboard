@@ -60,6 +60,10 @@ class ChessboardIO {
 			return getSquare((enumSquare)index);
 		}
 
+		static string getSquare64(uint64_t u64) {
+			return getSquare(Tool::LS1B(u64));
+		}
+
 		static void print(uint64_t u64) {
 			std::bitset<32> a(u64 >> 32);
 			std::bitset<32> b(u64);

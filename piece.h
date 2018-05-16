@@ -15,7 +15,7 @@ class Piece {
 
 		virtual ~Piece();
 
-		virtual uint64_t attacks(CBoard *cboard, int origin) = 0;
+		virtual uint64_t attacks(CBoard *cboard, uint64_t *origin) = 0;
 };
 
 #endif /* PIECE_H_ */

@@ -36,12 +36,20 @@ int bitScanForward(uint64_t bb) {
 }
 
 int nextBitScanForward(uint64_t *bb) {
-	unsigned int folded;
+	/*unsigned int folded;
 	assert (*bb != 0);
 	*bb ^= *bb - 1;
 	folded = (int) *bb ^ (*bb >> 32);
 	*bb &= (*bb - 1);
-	return lsb_64_table[folded * 0x78291ACF >> 26];
+	return lsb_64_table[folded * 0x78291ACF >> 26];*/
+	int result = bitScanForward(*bb);
+	*bb &= (*bb - 1);
+	return result;
+}
+
+void nextBitScanForward(uint64_t *u64, uint64_t *p) {
+	*p = (*u64) & -(*u64);	//LS1B
+	*u64 &= (*u64 - 1);	//LS1B_reset
 }
 
 void bitScanForward(uint64_t u64, int *p) {
@@ -311,7 +319,7 @@ void swapTest() {
 	uint64_t u64x = 0x0102030405060708;
 	unsigned long ul = 0x01020304;
 	printf("byteswap of %I64x = %I64x\n", u64x, __bswap_constant_64(u64x));
-	printf("byteswap of %Ix = %Ix", ul, __bswap_constant_32(ul));
+	printf("byteswap of %Ix = %Ix\n", ul, __bswap_constant_32(ul));
 }
 
 void printPawnAttacks() {
@@ -359,7 +367,7 @@ void printMask(uint64_t occ) {
 }
 
 //Test by print all moves
-void generateAllMoves(CBoard u64, CBoard::ColorType color) {
+void generateAllMoves(CBoard *cboard, CBoard::ColorType color) {
 /*	uint64_t occ = u64.getPieceSet(CBoard::occ);
 	uint64_t empty = u64.getPieceSet(CBoard::empty);
 	uint64_t friends = u64.getPieceSet(CBoard::occ, color);
@@ -373,17 +381,23 @@ void generateAllMoves(CBoard u64, CBoard::ColorType color) {
 
 	std::map<CBoard::EnumPiece, Piece*> pieceMap;
 	pieceMap[CBoard::nPawn] = new Pawn();
+	/*pieceMap[CBoard::nKnight] = new Knight();
+	pieceMap[CBoard::nBishop] = new Bishop();
+	pieceMap[CBoard::nRook] = new Rook();
+	pieceMap[CBoard::nQueen] = new Queen();
+	pieceMap[CBoard::nKing] = new King();*/
+	uint64_t origin = 0;
+	uint64_t attack = 0;
 
-	for (int piece = CBoard::nPawn; piece != CBoard::nPawn/*nKing*/; piece++) {
+	for (int piece = CBoard::nPawn; piece != CBoard::nKnight; piece++) {
 		CBoard::EnumPiece type = static_cast<CBoard::EnumPiece>(piece);
-		uint64_t pieces = u64.getPieceSet(type, color);
-
+		uint64_t pieces = cboard->getPieceSet(type, color);
 		while (pieces > 0) {
-			int origin = nextBitScanForward(&pieces);  //LS1B
-			uint64_t piceAttack = pieceMap[CBoard::nPawn]->attacks(&u64, origin);
+			nextBitScanForward(&pieces, &origin);
+			uint64_t piceAttack = pieceMap[CBoard::nPawn]->attacks(cboard, &origin);
 			while (piceAttack > 0) {
-				int destination = nextBitScanForward(&piceAttack);  //LS1B
-				cout << origin << "-" << destination;
+				nextBitScanForward(&piceAttack, &attack);
+				cout << ChessboardIO::getSquare64(origin) << "-" << ChessboardIO::getSquare64(attack) << endl;
 			}
 		}
 	}
@@ -419,6 +433,11 @@ int main() {
 	printPicesBySquare(board);
 	
 	swapTest();
+
+	CBoard *cboard = new CBoard();
+	cboard->setPieceSet(ChessboardIO::setBoard(enumSquares), CBoard::nPawn, CBoard::white);
+	ChessboardIO::printBigBoard(ChessboardIO::setBoard(enumSquares));
+	generateAllMoves(cboard, CBoard::white);
 
 	return 0;
 }
