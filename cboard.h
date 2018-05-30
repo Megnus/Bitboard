@@ -21,8 +21,9 @@ public:
 	};
 
 	enum EnumPiece {
+		nWhite,
+		nBlack,
 		occ,
-		empty,
 		nPawn,
 		nKnight,
 		nBishop,
@@ -33,12 +34,10 @@ public:
 
 	ColorType color;
 
-	//This is broken
 	void setPieceSet(uint64_t u64, EnumPiece piece, ColorType color)  {
-		pieceBB[color + nKing + 1] = u64;
-		pieceBB[piece] = u64;
+		pieceBB[color] |= u64;
+		pieceBB[piece] |= u64;
 		pieceBB[occ] |= u64;
-		pieceBB[empty] = ~pieceBB[occ];
 	}
 
 	void setPieceSet(ChessboardIO::enumSquare squares[], EnumPiece piece, ColorType color) {
@@ -46,12 +45,16 @@ public:
 		setPieceSet(u64, piece, color);
 	}
 
+	uint64_t getEmpty(ColorType color) const {
+		return ~pieceBB[color];
+	}
+
 	uint64_t getPieceSet(EnumPiece piece) const {
 		return pieceBB[piece];
 	}
 
 	uint64_t getPieceSet(EnumPiece piece, ColorType color) const {
-		return pieceBB[piece];// & pieceBB[color + nKing + 1];
+		return pieceBB[piece] & pieceBB[color];
 	}
 
 	uint64_t getWhitePawns() const {

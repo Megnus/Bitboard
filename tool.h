@@ -12,7 +12,86 @@ class Tool {
 	/*private:
 		static const int lsb_64_table[64];*/
 	public:
-
+//	const int lsb_64_table[64] = {
+//		63, 30,  3, 32, 59, 14, 11, 33,
+//		60, 24, 50,  9, 55, 19, 21, 34,
+//		61, 29,  2, 53, 51, 23, 41, 18,
+//		56, 28,  1, 43, 46, 27,  0, 35,
+//		62, 31, 58,  4,  5, 49, 54,  6,
+//		15, 52, 12, 40,  7, 42, 45, 16,
+//		25, 57, 48, 13, 10, 39,  8, 44,
+//		20, 47, 38, 22, 17, 37, 36, 26
+//	};
+//
+//	// There suppose to be faster once: https://chessprogramming.wikispaces.com/BitScan
+//	int bitScanForward(uint64_t bb) {
+//		unsigned int folded;
+//		assert (bb != 0);
+//		bb ^= bb - 1;
+//		folded = (int) bb ^ (bb >> 32);
+//		return lsb_64_table[folded * 0x78291ACF >> 26];
+//	}
+//
+//	int nextBitScanForward(uint64_t *bb) {
+//
+//		/*unsigned int folded;
+//		assert (*bb != 0);
+//		*bb ^= *bb - 1;
+//		folded = (int) *bb ^ (*bb >> 32);
+//		*bb &= (*bb - 1);
+//		return lsb_64_table[folded * 0x78291ACF >> 26];*/
+//		int result = bitScanForward(*bb);
+//		*bb &= (*bb - 1);
+//		return result;
+//	}
+//
+//	int nextBitScanForward(uint64_t *bb, uint64_t *p) {
+//		*p = (*bb) & -(*bb);	//LS1B
+//		*bb &= (*bb - 1);	//LS1B_reset
+//		return 0;
+//	}
+//
+//	void nextBitScanForwards(uint64_t *bb, uint64_t *p) {
+//		*p = (*bb) & -(*bb);	//LS1B
+//		*bb &= (*bb - 1);	//LS1B_reset
+//	}
+//
+//	void bitScanForward(uint64_t bb, int *p) {
+//		while (bb > 0) {
+//			*(p++) = bitScanForward(bb);  //LS1B
+//			bb &= (bb - 1);	  //LS1B_reset
+//		}
+//		*(p++) = -1;
+//	}
+//
+//	void LS1B(uint64_t bb, uint64_t *p) {
+//		while (bb > 0) {
+//			*(p++) = bb & -bb;  //LS1B
+//			bb &= (bb - 1);	  //LS1B_reset
+//		}
+//		*(p++) = 0;
+//	}
+//
+//	void findFirstSet(uint64_t num) {
+//		// https://en.wikipedia.org/wiki/Find_first_set
+//		// https://www.go4expert.com/articles/builtin-gcc-functions-builtinclz-t29238/
+//		int clz = 0;
+//		int ctz = 0;
+//		int ones = 0;
+//
+//		clz = __builtin_clz(num);
+//
+//		printf("Number of leading zero's in %llu is %d\n", num, clz);
+//
+//		clz = __builtin_clz(-num);
+//		printf("Number of leading zero's in %llu is %d\n", -num, clz);
+//
+//		ctz = __builtin_ctz(num);
+//		printf("Number of trailing zero's in %llu is %d\n", num, ctz);
+//
+//		ones = __builtin_popcount(num);
+//		printf("Number of one's in %llu is %d\n", num, ones);
+//	}
 
 		static const uint64_t notAFile = 0xfefefefefefefefe; // ~0x0101010101010101
 		static const uint64_t notHFile = 0x7f7f7f7f7f7f7f7f; // ~0x8080808080808080

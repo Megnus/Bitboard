@@ -10,8 +10,10 @@
 #include "chessboardio.h"
 #include "tool.h"
 #include "cboard.h"
-#include "piece.h"
-#include "pawn.h"
+#include "piece\piece.h"
+#include "piece\pawn.h"
+#include "piece\knight.h"
+#include "piece\king.h"
 #include <map>
 //using namespace std;
 //using namespace chessio;
@@ -27,6 +29,7 @@ const int lsb_64_table[64] = {
 	20, 47, 38, 22, 17, 37, 36, 26
 };
 
+// There suppose to be faster once: https://chessprogramming.wikispaces.com/BitScan
 int bitScanForward(uint64_t bb) {
 	unsigned int folded;
 	assert (bb != 0);
@@ -36,6 +39,7 @@ int bitScanForward(uint64_t bb) {
 }
 
 int nextBitScanForward(uint64_t *bb) {
+
 	/*unsigned int folded;
 	assert (*bb != 0);
 	*bb ^= *bb - 1;
@@ -47,27 +51,53 @@ int nextBitScanForward(uint64_t *bb) {
 	return result;
 }
 
-void nextBitScanForward(uint64_t *u64, uint64_t *p) {
-	*p = (*u64) & -(*u64);	//LS1B
-	*u64 &= (*u64 - 1);	//LS1B_reset
+int nextBitScanForward(uint64_t *bb, uint64_t *p) {
+	*p = (*bb) & -(*bb);	//LS1B
+	*bb &= (*bb - 1);	//LS1B_reset
+	return 0;
 }
 
-void bitScanForward(uint64_t u64, int *p) {
-	while (u64 > 0) {
-		*(p++) = bitScanForward(u64);  //LS1B
-		u64 &= (u64 - 1);	  //LS1B_reset
+void nextBitScanForwards(uint64_t *bb, uint64_t *p) {
+	*p = (*bb) & -(*bb);	//LS1B
+	*bb &= (*bb - 1);	//LS1B_reset
+}
+
+void bitScanForward(uint64_t bb, int *p) {
+	while (bb > 0) {
+		*(p++) = bitScanForward(bb);  //LS1B
+		bb &= (bb - 1);	  //LS1B_reset
 	}
 	*(p++) = -1;
 }
 
-void LS1B(uint64_t u64, uint64_t *p) {
-	while (u64 > 0) {
-		*(p++) = u64 & -u64;  //LS1B
-		u64 &= (u64 - 1);	  //LS1B_reset
+void LS1B(uint64_t bb, uint64_t *p) {
+	while (bb > 0) {
+		*(p++) = bb & -bb;  //LS1B
+		bb &= (bb - 1);	  //LS1B_reset
 	}
 	*(p++) = 0;
 }
 
+void findFirstSet(uint64_t num) {
+	// https://en.wikipedia.org/wiki/Find_first_set
+	// https://www.go4expert.com/articles/builtin-gcc-functions-builtinclz-t29238/
+	int clz = 0;
+	int ctz = 0;
+	int ones = 0;
+
+	clz = __builtin_clz(num);
+
+	printf("Number of leading zero's in %llu is %d\n", num, clz);
+
+	clz = __builtin_clz(-num);
+	printf("Number of leading zero's in %llu is %d\n", -num, clz);
+
+	ctz = __builtin_ctz(num);
+	printf("Number of trailing zero's in %llu is %d\n", num, ctz);
+
+	ones = __builtin_popcount(num);
+	printf("Number of one's in %llu is %d\n", num, ones);
+}
 
 void printMovesByMatrix(uint64_t x) {
 	uint64_t moveArray[64];
@@ -113,6 +143,7 @@ uint64_t noWeOne(uint64_t b) { return (b << 7) & notHFile; }
 
 
 //--- Pawn attacks ----------------------------
+
 uint64_t wPawnAttacks(uint64_t wb, uint64_t bb, uint64_t wPawns) {
 	uint64_t empty = ~ (bb | wb);
 	uint64_t singlePushs = nortOne(wPawns) & empty;
@@ -140,6 +171,7 @@ uint64_t wPawnAttacks(uint64_t wb, uint64_t bb, ChessboardIO::enumSquare sq) {
 uint64_t bPawnAttacks(uint64_t wb, uint64_t bb, ChessboardIO::enumSquare sq) {
 	return bPawnAttacks(wb, bb, (uint64_t)1 << sq);
 }
+
 //---------------------------------------------
 
 //--- King attacks ----------------------------
@@ -379,28 +411,48 @@ void generateAllMoves(CBoard *cboard, CBoard::ColorType color) {
 	uint64_t queens = u64.getPieceSet(CBoard::nQueen, color);
 	uint64_t king = u64.getPieceSet(CBoard::nKing, color);*/
 
-	std::map<CBoard::EnumPiece, Piece*> pieceMap;
-	pieceMap[CBoard::nPawn] = new Pawn();
+	Piece *pieceArray[] = {new Pawn(), new Knight(), new King()};
 	/*pieceMap[CBoard::nKnight] = new Knight();
 	pieceMap[CBoard::nBishop] = new Bishop();
 	pieceMap[CBoard::nRook] = new Rook();
 	pieceMap[CBoard::nQueen] = new Queen();
 	pieceMap[CBoard::nKing] = new King();*/
-	uint64_t origin = 0;
-	uint64_t attack = 0;
+//	uint64_t origin = 0;
+//	uint64_t attack = 0;
 
-	for (int piece = CBoard::nPawn; piece != CBoard::nKnight; piece++) {
-		CBoard::EnumPiece type = static_cast<CBoard::EnumPiece>(piece);
+	for (int i = 0; i < 3; i++) {
+		CBoard::EnumPiece type = pieceArray[i]->type();
 		uint64_t pieces = cboard->getPieceSet(type, color);
 		while (pieces > 0) {
-			nextBitScanForward(&pieces, &origin);
-			uint64_t piceAttack = pieceMap[CBoard::nPawn]->attacks(cboard, &origin);
-			while (piceAttack > 0) {
-				nextBitScanForward(&piceAttack, &attack);
-				cout << ChessboardIO::getSquare64(origin) << "-" << ChessboardIO::getSquare64(attack) << endl;
+			int sq = __builtin_ctzll(pieces);
+			pieces &= (pieces - 1);
+			uint64_t attacks = pieceArray[i]->attacks(cboard, sq);
+			while (attacks > 0) {
+				int attack = __builtin_ctzll(attacks);
+				attacks &= (attacks - 1);
+				//Generate move cboard->addMove(sq, attack);
+				cout << ChessboardIO::getSquare(sq) << "-" << ChessboardIO::getSquare(attack) << endl;
 			}
 		}
 	}
+/*
+	std::map<CBoard::EnumPiece, Piece*> pieceMap;
+	pieceMap[CBoard::nPawn] = new Pawn();
+	pieceMap[CBoard::nKnight] = new Knight();
+	for (int piece = CBoard::nPawn; piece != CBoard::nBishop; piece++) {
+		CBoard::EnumPiece type = static_cast<CBoard::EnumPiece>(piece);
+		uint64_t pieces = cboard->getPieceSet(type, color);
+		while (pieces > 0) {
+			int sq = __builtin_ctzll(pieces);
+			pieces &= (pieces - 1);
+			uint64_t attacks = pieceMap[(CBoard::EnumPiece)piece]->attacks(cboard, sq);
+			while (attacks > 0) {
+				int attack = __builtin_ctzll(attacks);
+				attacks &= (attacks - 1);
+				cout << ChessboardIO::getSquare(sq) << "-" << ChessboardIO::getSquare(attack) << endl;
+			}
+		}
+	}*/
 }
 
 int main() {
@@ -414,13 +466,22 @@ int main() {
 	ChessboardIO::enumSquare enumSquares[] = {
 			ChessboardIO::b2,
 			ChessboardIO::d2,
-			ChessboardIO::g3,
+			ChessboardIO::f3,
 			ChessboardIO::end };
+
+	ChessboardIO::enumSquare enumKnightSquares[] = {
+			ChessboardIO::c4,
+			ChessboardIO::end };
+
+	ChessboardIO::enumSquare enumKingSquares[] = {
+			ChessboardIO::d5,
+			ChessboardIO::end };
+
 
 	uint64_t board = ChessboardIO::setBoard(enumSquares);
 	ChessboardIO::printBigBoard(board);
 
-	uint64_t o   = 0b0001000000010000000000000000000000000000000100000001000000010000;
+	uint64_t o = 0b0001000000010000000000000000000000000000000100000001000000010000;
 
 	printMask(occ);
 
@@ -433,11 +494,15 @@ int main() {
 	printPicesBySquare(board);
 	
 	swapTest();
-
 	CBoard *cboard = new CBoard();
 	cboard->setPieceSet(ChessboardIO::setBoard(enumSquares), CBoard::nPawn, CBoard::white);
+	cboard->setPieceSet(ChessboardIO::setBoard(enumKnightSquares), CBoard::nKnight, CBoard::white);
+	cboard->setPieceSet(ChessboardIO::setBoard(enumKingSquares), CBoard::nKing, CBoard::white);
 	ChessboardIO::printBigBoard(ChessboardIO::setBoard(enumSquares));
+
 	generateAllMoves(cboard, CBoard::white);
+
+	findFirstSet(o);
 
 	return 0;
 }

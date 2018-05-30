@@ -5,7 +5,7 @@
  *      Author: msundstr
  */
 
-#include "cboard.h"
+#include "..\cboard.h"
 #ifndef PIECE_H_
 #define PIECE_H_
 
@@ -15,7 +15,10 @@ class Piece {
 
 		virtual ~Piece();
 
-		virtual uint64_t attacks(CBoard *cboard, uint64_t *origin) = 0;
+		//virtual uint64_t attacks(CBoard *cboard, uint64_t *origin) = 0;
+		virtual uint64_t attacks(CBoard *cboard, int sq) = 0;
+
+		virtual CBoard::EnumPiece type() = 0;
 };
 
 #endif /* PIECE_H_ */
