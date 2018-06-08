@@ -1,17 +1,18 @@
 /*
- * Pawn.cpp
+ * queen.cpp
  *
- *  Created on: 9 maj 2018
+ *  Created on: 1 juni 2018
  *      Author: msundstr
  */
 
-#include "pawn.h"
+#include "queen.h"
 
-Pawn::Pawn() {
+Queen::Queen() {
 	// TODO Auto-generated constructor stub
-	cout << "Pawn constructor" << endl;
+	//slidingPieceAttack->test();
 }
 
-Pawn::~Pawn() {
+Queen::~Queen() {
 	// TODO Auto-generated destructor stub
 }
+

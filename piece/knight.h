@@ -38,6 +38,7 @@ public:
 	}
 
 	CBoard::EnumPiece type() {
+		cout << "nKnight"  << endl;
 		return CBoard::nKnight;
 	}
 };

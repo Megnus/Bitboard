@@ -6,10 +6,11 @@
  */
 
 #include "king.h"
-
+/*
 King::King() {
-	kingAttacks();
-}
+	cout << "king const" << endl;
+	//kingAttacks();
+}*/
 
 King::~King() {
 	// TODO Auto-generated destructor stub

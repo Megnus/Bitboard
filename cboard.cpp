@@ -13,8 +13,8 @@ CBoard::CBoard() {
 		pieceBB[index] = 0;
 	}
 }
-
+/*
 CBoard::~CBoard() {
 	// TODO Auto-generated destructor stub
-}
+}*/
 

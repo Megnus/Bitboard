@@ -8,6 +8,7 @@
 #include "knight.h"
 
 Knight::Knight() {
+	cout << "Knight constructor" << endl;
 	knightAttacks();
 }
 

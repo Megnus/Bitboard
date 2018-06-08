@@ -5,8 +5,9 @@
  *      Author: 	msundstr
  *      Url: 		https://chessprogramming.wikispaces.com/Bitboard%20Board-Definition
  */
-#include <iostream>
-#include <stdio.h>
+//#include <iostream>
+////#include <iostream>
+//#include <stdio.h>#include <stdio.h>
 #include "chessboardio.h"
 #ifndef CBOARD_H_
 #define CBOARD_H_
@@ -66,7 +67,10 @@ public:
 	}
 
 	CBoard();
-	virtual ~CBoard();
+
+	virtual ~CBoard() {
+		cout << "CBoard deleted" << endl;
+	}
 };
 
 #endif /* CBOARD_H_ */

@@ -9,7 +9,7 @@
 #include <bitset>
 #include <stdio.h>      /* printf */
 #include <assert.h>     /* assert */
-#include "byteswap.h"
+//#include "byteswap.h"
 #include "tool.h"
 #include <string>
 using namespace std;

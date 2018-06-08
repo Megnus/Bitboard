@@ -10,19 +10,26 @@
 
 class Pawn: public Piece {
 private:
-	uint64_t whitePawnAttacks(uint64_t empty, uint64_t blackPieces, uint64_t whitePawns) {
-		uint64_t singlePushs = Tool::nortOne(whitePawns) & empty;
-		uint64_t attacks = Tool::noEaOne(whitePawns) & blackPieces;
-		attacks |= Tool::noWeOne(whitePawns) & blackPieces;
+	//TODO Create lookup arrays for attacks and singlepush.
+	uint64_t whitePawnAttacks(CBoard *cboard, int sq) {
+		uint64_t empty = ~cboard->getPieceSet(CBoard::occ);
+		uint64_t blackPieces = cboard->getPieceSet(CBoard::occ, CBoard::white);
+		uint64_t sq64 = bitMaskEx[sq];
+		uint64_t singlePushs = Tool::nortOne(sq64) & empty;
+		uint64_t attacks = Tool::noEaOne(sq64) & blackPieces;
+		attacks |= Tool::noWeOne(sq64) & blackPieces;
 		attacks |= singlePushs;
 		attacks |= Tool::nortOne(singlePushs) & empty & Tool::rank4;
 		return attacks;
 	}
 
-	uint64_t blackPawnAttacks(uint64_t empty, uint64_t whitePieces, uint64_t blackPawns) {
-		uint64_t singlePushs = Tool::soutOne(blackPawns) & empty;
-		uint64_t attacks = Tool::soEaOne(blackPawns) & whitePieces;
-		attacks |= Tool::soWeOne(blackPawns) & whitePieces;
+	uint64_t blackPawnAttacks(CBoard *cboard, int sq) {
+		uint64_t empty = ~cboard->getPieceSet(CBoard::occ);
+		uint64_t whitePieces = cboard->getPieceSet(CBoard::occ, CBoard::white);
+		uint64_t sq64 = bitMaskEx[sq];
+		uint64_t singlePushs = Tool::soutOne(sq64) & empty;
+		uint64_t attacks = Tool::soEaOne(sq64) & whitePieces;
+		attacks |= Tool::soWeOne(sq64) & whitePieces;
 		attacks |= singlePushs;
 		attacks |= Tool::soutOne(singlePushs) & empty & Tool::rank5;
 		return attacks;
@@ -34,35 +41,14 @@ public:
 	virtual ~Pawn();
 
 	uint64_t attacks(CBoard *cboard, int sq) {
-		if (cboard->color == CBoard::white) {
-			return whitePawnAttacks(~cboard->getPieceSet(CBoard::occ),
-					cboard->getPieceSet(CBoard::occ, CBoard::black),
-					(uint64_t) 1 << sq);
-		}
-
-		return blackPawnAttacks(~cboard->getPieceSet(CBoard::occ),
-				cboard->getPieceSet(CBoard::occ, CBoard::white),
-				(uint64_t) 1 << sq);
+		cout << "Pawn Attacks"  << endl;
+		return cboard->color == CBoard::white ? whitePawnAttacks(cboard, sq) : blackPawnAttacks(cboard, sq);
 	}
 
 	CBoard::EnumPiece type() {
+		cout << "nPawn"  << endl;
 		return CBoard::nPawn;
 	}
-
-	/*
-	 uint64_t attacks(CBoard *cboard, uint64_t *origin) {
-	 if (cboard->color == CBoard::white) {
-	 return whitePawnAttacks(
-	 cboard->getPieceSet(CBoard::occ, CBoard::white),
-	 cboard->getPieceSet(CBoard::occ, CBoard::black),
-	 *origin);
-	 }
-
-	 return blackPawnAttacks(
-	 cboard->getPieceSet(CBoard::occ, CBoard::white),
-	 cboard->getPieceSet(CBoard::occ, CBoard::black),
-	 *origin);
-	 }*/
 };
 
 #endif /* PAWN_H_ */

@@ -33,7 +33,9 @@ private:
 	}
 
 public:
-	King();
+	King() {
+		kingAttacks();
+	}
 
 	virtual ~King();
 
@@ -42,6 +44,7 @@ public:
 	}
 
 	CBoard::EnumPiece type() {
+		cout << "nKing"  << endl;
 		return CBoard::nKing;
 	}
 };
