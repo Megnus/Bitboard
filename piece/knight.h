@@ -34,7 +34,7 @@ public:
 	virtual ~Knight();
 
 	uint64_t attacks(CBoard *cboard, int sq) {
-		return arrKnightAttacks[sq] & cboard->getEmpty(cboard->color);
+		return arrKnightAttacks[sq];
 	}
 
 	CBoard::EnumPiece type() {

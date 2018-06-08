@@ -68,9 +68,7 @@ private:
 
 public:
 	Bishop() {
-		cout << "Bishop >" << endl;
 		fillArrMask64();
-		cout << "test <" << endl;
 	}
 
 	virtual ~Bishop();

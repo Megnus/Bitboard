@@ -88,10 +88,8 @@ class ChessboardIO {
 				for (int j = 0; j < 3; j++) {
 					for (int i = 0; i < 8; i++) {
 						std::cout << "|" << (j == 1 && (u64 & mask) > 0 ? set : (j == 2 ? border : space));
-
 						mask <<= j == 1 ? 1 : 0;
 					}
-
 					std::cout << "|" << std::endl;
 				}
 			}

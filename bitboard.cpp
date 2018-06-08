@@ -418,6 +418,7 @@ void generateMoves(CBoard *cboard, Piece *pieceArray[]) {
 			int sq = __builtin_ctzll(pieces);
 			pieces &= (pieces - 1);
 			uint64_t attacks = pieceArray[i]->attacks(cboard, sq);
+			attacks &= cboard->getEmpty(cboard->color);
 			while (attacks > 0) {
 				int attack = __builtin_ctzll(attacks);
 				attacks &= (attacks - 1);
@@ -446,16 +447,37 @@ void generateMoves(CBoard *cboard, Piece *pieceArray[]) {
 	}*/
 }
 
-// http://wtharvey.com/
-int main() {
+void functionTests() {
 	createLookUpAttacks();
 
+	ChessboardIO::enumSquare enumSquares[] = {
+			ChessboardIO::b2,
+			ChessboardIO::d2,
+			ChessboardIO::f3,
+			ChessboardIO::end };
+
+	uint64_t board = ChessboardIO::setBoard(enumSquares);
+	ChessboardIO::printBigBoard(board);
 	uint64_t occ = 0b01000100;
 	ChessboardIO::printBigBoard(occ);
 	uint64_t attack = rankAttacks(occ, ChessboardIO::e1);
 	ChessboardIO::printBigBoard(attack);
+	uint64_t o = 0b0001000000010000000000000000000000000000000100000001000000010000;
 
-	ChessboardIO::enumSquare enumSquares[] = {
+	printMask(occ);
+	printQueenAttacks(o);
+	printPawnAttacks();
+	printMovesByMatrix(board);
+	printPicesBySquare(board);
+	swapTest();
+	findFirstSet(o);
+}
+
+// http://wtharvey.com/
+int main() {
+	//functionTests();
+
+	ChessboardIO::enumSquare enumPawnSquares[] = {
 			ChessboardIO::b2,
 			ChessboardIO::d2,
 			ChessboardIO::f3,
@@ -481,24 +503,6 @@ int main() {
 			ChessboardIO::c7,
 			ChessboardIO::end };
 
-	uint64_t board = ChessboardIO::setBoard(enumSquares);
-	ChessboardIO::printBigBoard(board);
-
-
-	uint64_t o = 0b0001000000010000000000000000000000000000000100000001000000010000;
-
-	printMask(occ);
-
-	printQueenAttacks(o);
-
-	printPawnAttacks();
-
-	printMovesByMatrix(board);
-	
-	printPicesBySquare(board);
-
-	swapTest();
-
 	CBoard *cboard = new CBoard();
 
 	//Piece *pieceArray[] = { new Pawn, new Knight(), new King(), new Rook(), new Bishop(), new Queen() };
@@ -510,7 +514,7 @@ int main() {
 	pieces[4] = new Bishop();
 	pieces[5] = new Queen();
 
-	cboard->setPieceSet(ChessboardIO::setBoard(enumSquares), CBoard::nPawn, CBoard::white);
+	cboard->setPieceSet(ChessboardIO::setBoard(enumPawnSquares), CBoard::nPawn, CBoard::white);
 	cboard->setPieceSet(ChessboardIO::setBoard(enumKnightSquares), CBoard::nKnight, CBoard::white);
 	cboard->setPieceSet(ChessboardIO::setBoard(enumKingSquares), CBoard::nKing, CBoard::white);
 	cboard->setPieceSet(ChessboardIO::setBoard(enumRookSquares), CBoard::nRook, CBoard::white);
@@ -520,7 +524,6 @@ int main() {
 	generateMoves(cboard, pieces);
 	ChessboardIO::printBigBoard(cboard->getPieceSet(CBoard::occ));
 
-	findFirstSet(o);
 
 	for (int i = 0; i < 6; i++) {
 		delete pieces[i];

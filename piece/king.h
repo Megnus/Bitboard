@@ -40,7 +40,7 @@ public:
 	virtual ~King();
 
 	uint64_t attacks(CBoard *cboard, int sq) {
-		return arrKingAttacks[sq] & cboard->getEmpty(cboard->color);
+		return arrKingAttacks[sq];
 	}
 
 	CBoard::EnumPiece type() {

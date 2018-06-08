@@ -12,24 +12,26 @@ class Pawn: public Piece {
 private:
 	//TODO Create lookup arrays for attacks and singlepush.
 	uint64_t whitePawnAttacks(CBoard *cboard, int sq) {
-		uint64_t empty = ~cboard->getPieceSet(CBoard::occ);
-		uint64_t blackPieces = cboard->getPieceSet(CBoard::occ, CBoard::white);
+		uint64_t occ = cboard->getPieceSet(CBoard::occ);
+		uint64_t empty = ~occ;
+		//uint64_t blackPieces = cboard->getPieceSet(CBoard::occ, CBoard::white);
 		uint64_t sq64 = bitMaskEx[sq];
 		uint64_t singlePushs = Tool::nortOne(sq64) & empty;
-		uint64_t attacks = Tool::noEaOne(sq64) & blackPieces;
-		attacks |= Tool::noWeOne(sq64) & blackPieces;
+		uint64_t attacks = Tool::noEaOne(sq64) & occ/*blackPieces*/;
+		attacks |= Tool::noWeOne(sq64) & occ/*blackPieces*/;
 		attacks |= singlePushs;
 		attacks |= Tool::nortOne(singlePushs) & empty & Tool::rank4;
 		return attacks;
 	}
 
 	uint64_t blackPawnAttacks(CBoard *cboard, int sq) {
-		uint64_t empty = ~cboard->getPieceSet(CBoard::occ);
-		uint64_t whitePieces = cboard->getPieceSet(CBoard::occ, CBoard::white);
+		uint64_t occ = cboard->getPieceSet(CBoard::occ);
+		uint64_t empty = ~occ;
+		//uint64_t whitePieces = cboard->getPieceSet(CBoard::occ, CBoard::white);
 		uint64_t sq64 = bitMaskEx[sq];
 		uint64_t singlePushs = Tool::soutOne(sq64) & empty;
-		uint64_t attacks = Tool::soEaOne(sq64) & whitePieces;
-		attacks |= Tool::soWeOne(sq64) & whitePieces;
+		uint64_t attacks = Tool::soEaOne(sq64) & occ/*whitePieces*/;
+		attacks |= Tool::soWeOne(sq64) & occ/*whitePieces*/;
 		attacks |= singlePushs;
 		attacks |= Tool::soutOne(singlePushs) & empty & Tool::rank5;
 		return attacks;
@@ -41,7 +43,6 @@ public:
 	virtual ~Pawn();
 
 	uint64_t attacks(CBoard *cboard, int sq) {
-		cout << "Pawn Attacks"  << endl;
 		return cboard->color == CBoard::white ? whitePawnAttacks(cboard, sq) : blackPawnAttacks(cboard, sq);
 	}
 
