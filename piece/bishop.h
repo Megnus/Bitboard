@@ -84,6 +84,10 @@ public:
 		cout << "nBishop"  << endl;
 		return CBoard::nBishop;
 	}
+
+	string toString() {
+		return "bishop";
+	}
 };
 
 #endif /* PIECE_BISHOP_H_ */

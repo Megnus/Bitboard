@@ -8,7 +8,7 @@
 #include "..\cboard.h"
 #ifndef PIECE_H_
 #define PIECE_H_
-
+	static const Tool tools;
 class Piece {
 protected:
 	uint64_t bitMaskEx[64];
@@ -18,6 +18,8 @@ protected:
 	}
 
 public:
+
+
 	Piece() {
 		for (int sq = 0; sq < 64; sq++) {
 			bitMaskEx[sq] = bitMask(sq);
@@ -30,6 +32,8 @@ public:
 	virtual uint64_t attacks(CBoard *cboard, int sq) = 0;
 
 	virtual CBoard::EnumPiece type() = 0;
+
+	virtual string toString() = 0;
 };
 
 #endif /* PIECE_H_ */

@@ -44,11 +44,15 @@ public:
 
 	uint64_t attacks(CBoard *cboard, int sq) {
 		return cboard->color == CBoard::white ? whitePawnAttacks(cboard, sq) : blackPawnAttacks(cboard, sq);
-	}
+	};
 
 	CBoard::EnumPiece type() {
 		cout << "nPawn"  << endl;
 		return CBoard::nPawn;
+	}
+
+	string toString() {
+		return "pawn";
 	}
 };
 

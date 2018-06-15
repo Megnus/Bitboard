@@ -47,6 +47,10 @@ public:
 		cout << "nKing"  << endl;
 		return CBoard::nKing;
 	}
+
+	string toString() {
+		return "king";
+	}
 };
 
 #endif /* KING_H_ */

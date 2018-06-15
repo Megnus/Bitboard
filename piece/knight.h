@@ -41,6 +41,10 @@ public:
 		cout << "nKnight"  << endl;
 		return CBoard::nKnight;
 	}
+
+	string toString() {
+		return "knight";
+	}
 };
 
 #endif /* KNIGHT_H_ */

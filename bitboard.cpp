@@ -18,6 +18,7 @@
 #include "piece\bishop.h"
 #include "piece\queen.h"
 #include <map>
+#include <string>
 using namespace std;
 //using namespace chessio;
 
@@ -90,16 +91,16 @@ void findFirstSet(uint64_t num) {
 
 	clz = __builtin_clz(num);
 
-	printf("Number of leading zero's in %llu is %d\n", num, clz);
+	printf("Number of leading zero's in %I64u is %d\n", num, clz);
 
 	clz = __builtin_clz(-num);
-	printf("Number of leading zero's in %llu is %d\n", -num, clz);
+	printf("Number of leading zero's in %I64u is %d\n", -num, clz);
 
 	ctz = __builtin_ctz(num);
-	printf("Number of trailing zero's in %llu is %d\n", num, ctz);
+	printf("Number of trailing zero's in %I64u is %d\n", num, ctz);
 
 	ones = __builtin_popcount(num);
-	printf("Number of one's in %llu is %d\n", num, ones);
+	printf("Number of one's in %I64u is %d\n", num, ones);
 }
 
 void printMovesByMatrix(uint64_t x) {
@@ -401,8 +402,39 @@ void printMask(uint64_t occ) {
 	ChessboardIO::printBigBoard(x);
 }
 
+struct Move {
+	uint8_t from;
+	uint8_t to;
+	CBoard::EnumPiece type;
+	bool castle;
+	bool passant; //Takes a unccupied square;
+
+
+/*
+	uint64_t bitMask(int sq) {
+		return (uint64_t) 1 << sq;
+	}
+
+	// For every move???
+	Move() {
+		for (int sq = 0; sq < 64; sq++) {
+			bitMaskEx[sq] = bitMask(sq);
+		}
+	}
+*/
+	void add(uint8_t from, uint8_t to, CBoard::EnumPiece type) {
+		this->from = from;
+		this->to = to;
+		this->type = type;
+	}
+
+	void print() {
+		cout << ChessboardIO::getSquare(from) << "-" << ChessboardIO::getSquare(to) << " piece: " << type << endl;
+	}
+};
+
 //Test by print all moves
-void generateMoves(CBoard *cboard, Piece *pieceArray[]) {
+void generateMoves(CBoard *cboard/*, Piece *pieceArray[]*/) {
 
 	//Piece *pieceArray[] = {new Pawn(), new Knight()/*, new King(), new Rook(), new Bishop(), new Queen()*/ };
 	/*pieceMap[CBoard::nKnight] = new Knight();
@@ -410,7 +442,41 @@ void generateMoves(CBoard *cboard, Piece *pieceArray[]) {
 	pieceMap[CBoard::nRook] = new Rook();
 	pieceMap[CBoard::nQueen] = new Queen();
 	pieceMap[CBoard::nKing] = new King();*/
+	Piece** pieceArray = new Piece*[6];
+	pieceArray[0] = new Pawn();
+	pieceArray[1] = new Knight();
+	pieceArray[2] = new King();
+	pieceArray[3] = new Rook();
+	pieceArray[4] = new Bishop();
+	pieceArray[5] = new Queen();
 
+
+	// Check!
+	/*{
+		uint64_t king64 = cboard->getPieceSet(CBoard::nKing, CBoard::white);
+		int kingSq = __builtin_ctzll(king64);
+
+		uint64_t knightAttacks = pieceArray[CBoard::nKnight]->attacks(cboard, kingSq);
+		uint64_t bishopAttacks = pieceArray[CBoard::nBishop]->attacks(cboard, kingSq);
+		uint64_t rookAttacks = pieceArray[CBoard::nRook]->attacks(cboard, kingSq);
+
+		uint64_t blackOcc = cboard->getPieceSet(CBoard::occ, CBoard::black);
+		bool potentiallyCheck = ((knightAttacks | bishopAttacks | rookAttacks) & blackOcc) > 0;
+
+		if (potentiallyCheck) {
+			uint64_t blackKnights = cboard->getPieceSet(CBoard::nKnight, CBoard::black);
+			uint64_t blackBishops = cboard->getPieceSet(CBoard::nBishop, CBoard::black);
+			uint64_t blackRooks = cboard->getPieceSet(CBoard::nRook, CBoard::black);
+			uint64_t blackQueen = cboard->getPieceSet(CBoard::nQueen, CBoard::black);
+
+			bool check = knightAttacks & blackKnights;
+			check |= bishopAttacks & (blackBishops | blackQueen);
+			check |= rookAttacks & (blackRooks | blackQueen);
+		}
+	}*/
+
+	Move moves[256];
+	uint8_t index = 0;
 	for (int i = 0; i < 6; i++) {
 		CBoard::EnumPiece type = pieceArray[i]->type();
 		uint64_t pieces = cboard->getPieceSet(type, cboard->color);
@@ -422,11 +488,20 @@ void generateMoves(CBoard *cboard, Piece *pieceArray[]) {
 			while (attacks > 0) {
 				int attack = __builtin_ctzll(attacks);
 				attacks &= (attacks - 1);
-				//Generate move cboard->addMove(sq, attack);
-				cout << ChessboardIO::getSquare(sq) << "-" << ChessboardIO::getSquare(attack) << endl;
+				moves[index++].add(sq, attack, type);
 			}
 		}
 	}
+	cout << "Moves available:" << endl;
+	for (int i = 0; i < index; i++) {
+		moves[i].print();
+	}
+
+	for (int i = 0; i < 6; i++) {
+		delete pieceArray[i];
+	}
+
+	delete[] pieceArray;
 /*
 	std::map<CBoard::EnumPiece, Piece*> pieceMap;
 	pieceMap[CBoard::nPawn] = new Pawn();
@@ -472,6 +547,12 @@ void functionTests() {
 	swapTest();
 	findFirstSet(o);
 }
+/*
+ostream & operator<<(ostream & out, const Pawn & point) {
+   out << "(" << "point.x" << "," << "point.y" << ")";  // access private data
+   return out;
+}*/
+
 
 // http://wtharvey.com/
 int main() {
@@ -505,15 +586,6 @@ int main() {
 
 	CBoard *cboard = new CBoard();
 
-	//Piece *pieceArray[] = { new Pawn, new Knight(), new King(), new Rook(), new Bishop(), new Queen() };
-	Piece** pieces = new Piece*[6];
-	pieces[0] = new Pawn();
-	pieces[1] = new Knight();
-	pieces[2] = new King();
-	pieces[3] = new Rook();
-	pieces[4] = new Bishop();
-	pieces[5] = new Queen();
-
 	cboard->setPieceSet(ChessboardIO::setBoard(enumPawnSquares), CBoard::nPawn, CBoard::white);
 	cboard->setPieceSet(ChessboardIO::setBoard(enumKnightSquares), CBoard::nKnight, CBoard::white);
 	cboard->setPieceSet(ChessboardIO::setBoard(enumKingSquares), CBoard::nKing, CBoard::white);
@@ -521,15 +593,10 @@ int main() {
 	cboard->setPieceSet(ChessboardIO::setBoard(enumBishopSquares), CBoard::nBishop, CBoard::white);
 	cboard->setPieceSet(ChessboardIO::setBoard(enumQueenSquares), CBoard::nQueen, CBoard::white);
 
-	generateMoves(cboard, pieces);
+	generateMoves(cboard);
 	ChessboardIO::printBigBoard(cboard->getPieceSet(CBoard::occ));
 
 
-	for (int i = 0; i < 6; i++) {
-		delete pieces[i];
-	}
-
-	delete[] pieces;
 	delete cboard;
 
 	return 0;

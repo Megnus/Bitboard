@@ -24,6 +24,10 @@ public:
 		cout << "nQueen"  << endl;
 		return CBoard::nQueen;
 	}
+
+	string toString() {
+		return "queen";
+	}
 };
 
 #endif /* PIECE_QUEEN_H_ */

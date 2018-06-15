@@ -83,6 +83,10 @@ public:
 		cout << "nRook"  << endl;
 		return CBoard::nRook;
 	}
+
+	string toString() {
+		return "rook";
+	}
 };
 
 #endif /* PIECE_ROOK_H_ */

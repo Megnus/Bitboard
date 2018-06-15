@@ -79,7 +79,7 @@ class Tool {
 //		int ctz = 0;
 //		int ones = 0;
 //
-//		clz = __builtin_clz(num);
+//		clz = __builtin_clz(num);Pawn();
 //
 //		printf("Number of leading zero's in %llu is %d\n", num, clz);
 //
@@ -92,6 +92,7 @@ class Tool {
 //		ones = __builtin_popcount(num);
 //		printf("Number of one's in %llu is %d\n", num, ones);
 //	}
+		//static const uint64_t test[0] = { 1 };
 
 		static const uint64_t notAFile = 0xfefefefefefefefe; // ~0x0101010101010101
 		static const uint64_t notHFile = 0x7f7f7f7f7f7f7f7f; // ~0x8080808080808080
