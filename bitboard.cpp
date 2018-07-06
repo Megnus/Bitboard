@@ -450,30 +450,70 @@ void generateMoves(CBoard *cboard/*, Piece *pieceArray[]*/) {
 	pieceArray[4] = new Bishop();
 	pieceArray[5] = new Queen();
 
-
+	// --- CRITICAL SQUARES ---
 	// Check!
-	/*{
+	{
 		uint64_t king64 = cboard->getPieceSet(CBoard::nKing, CBoard::white);
 		int kingSq = __builtin_ctzll(king64);
 
-		uint64_t knightAttacks = pieceArray[CBoard::nKnight]->attacks(cboard, kingSq);
-		uint64_t bishopAttacks = pieceArray[CBoard::nBishop]->attacks(cboard, kingSq);
-		uint64_t rookAttacks = pieceArray[CBoard::nRook]->attacks(cboard, kingSq);
+		uint64_t knightAttacks = pieceArray[1]->attacks(cboard, kingSq);
+		//cout << (int)CBoard::nBishop << endl;
+		uint64_t bishopAttacks = pieceArray[4]->attacks(cboard, kingSq);
+		uint64_t rookAttacks = pieceArray[3]->attacks(cboard, kingSq);
+		uint64_t queenAttacks = bishopAttacks | rookAttacks;
 
 		uint64_t blackOcc = cboard->getPieceSet(CBoard::occ, CBoard::black);
-		bool potentiallyCheck = ((knightAttacks | bishopAttacks | rookAttacks) & blackOcc) > 0;
+		bool potentiallyCheck = ((knightAttacks | queenAttacks) & blackOcc) > 0;
 
-		if (potentiallyCheck) {
+		if ((knightAttacks | queenAttacks) & blackOcc) {
 			uint64_t blackKnights = cboard->getPieceSet(CBoard::nKnight, CBoard::black);
 			uint64_t blackBishops = cboard->getPieceSet(CBoard::nBishop, CBoard::black);
 			uint64_t blackRooks = cboard->getPieceSet(CBoard::nRook, CBoard::black);
 			uint64_t blackQueen = cboard->getPieceSet(CBoard::nQueen, CBoard::black);
 
-			bool check = knightAttacks & blackKnights;
-			check |= bishopAttacks & (blackBishops | blackQueen);
-			check |= rookAttacks & (blackRooks | blackQueen);
+			bool check = (knightAttacks & blackKnights) | (bishopAttacks & blackBishops)
+					| (rookAttacks & blackRooks) | (queenAttacks & blackQueen);
+
+			cout << "blackKnights " << (bool) (knightAttacks & blackKnights) << endl;
+			cout << "blackBishops " << (bool) (bishopAttacks & blackBishops) << endl;
+			cout << "blackRooks " << (bool) (rookAttacks & blackRooks) << endl;
+			cout << "blackQueens " << (bool) (queenAttacks & blackQueen) << endl;
+			cout << check << endl;
 		}
-	}*/
+		cout << "potentiallyCheck" << endl;
+		cout << potentiallyCheck << endl;
+	}
+
+	{
+		bool castleDisabled = false;
+		bool shortCastleDisabled = false;
+		bool longCastelDisabled = false;
+
+		uint64_t whiteShortCastle = 0b11 << 1;
+		uint64_t whiteLongCastle = 0b111 << 5;
+		uint64_t whiteShortCastleRook = (uint64_t) 1;
+		uint64_t whiteLongCastleRook = (uint64_t) 1 << 8;
+		uint64_t whiteCastleKing = (uint64_t) 1 << 4;
+
+		uint64_t occ = cboard->getPieceSet(CBoard::occ);
+		uint64_t whiteShortRook = cboard->getPieceSet(CBoard::nRook,
+				CBoard::white);
+		uint64_t whiteLongRook = cboard->getPieceSet(CBoard::nRook,
+				CBoard::white);
+		uint64_t whiteKingPosition = cboard->getPieceSet(CBoard::nKing,
+				CBoard::white);
+
+		bool b0 = whiteKingPosition & whiteCastleKing; // castleDisabled = true;
+		bool b1 = whiteShortRook & whiteShortCastleRook; // shortCastleDisabled = true;
+		bool b2 = whiteLongRook & whiteLongCastleRook; // longCastelDisabled = true;
+		b1 |= occ & whiteShortCastle;
+		b2 |= occ & whiteLongCastle;
+
+		// King in check
+		// whiteShortCastle is occupied by enemy pieces
+		// whiteLongCastle is occupied by enemy pieces
+		// If enemy pieces can reach critical squares then check waring and pullback.
+	}
 
 	Move moves[256];
 	uint8_t index = 0;
@@ -586,13 +626,13 @@ int main() {
 
 	CBoard *cboard = new CBoard();
 
-	cboard->setPieceSet(ChessboardIO::setBoard(enumPawnSquares), CBoard::nPawn, CBoard::white);
-	cboard->setPieceSet(ChessboardIO::setBoard(enumKnightSquares), CBoard::nKnight, CBoard::white);
+	cboard->setPieceSet(ChessboardIO::setBoard(enumPawnSquares), CBoard::nPawn, CBoard::black);
+	cboard->setPieceSet(ChessboardIO::setBoard(enumKnightSquares), CBoard::nKnight, CBoard::black);
 	cboard->setPieceSet(ChessboardIO::setBoard(enumKingSquares), CBoard::nKing, CBoard::white);
-	cboard->setPieceSet(ChessboardIO::setBoard(enumRookSquares), CBoard::nRook, CBoard::white);
-	cboard->setPieceSet(ChessboardIO::setBoard(enumBishopSquares), CBoard::nBishop, CBoard::white);
-	cboard->setPieceSet(ChessboardIO::setBoard(enumQueenSquares), CBoard::nQueen, CBoard::white);
-
+	cboard->setPieceSet(ChessboardIO::setBoard(enumRookSquares), CBoard::nRook, CBoard::black);
+	cboard->setPieceSet(ChessboardIO::setBoard(enumBishopSquares), CBoard::nBishop, CBoard::black);
+	cboard->setPieceSet(ChessboardIO::setBoard(enumQueenSquares), CBoard::nQueen, CBoard::black);
+	cboard->color = CBoard::black;
 	generateMoves(cboard);
 	ChessboardIO::printBigBoard(cboard->getPieceSet(CBoard::occ));
 

@@ -35,6 +35,12 @@ public:
 
 	ColorType color;
 
+//	virtual ColorType getOppositeColor()
+//
+//	virtual ColorType getColor();
+//
+//	virtual void switchColor();
+
 	void setPieceSet(uint64_t u64, EnumPiece piece, ColorType color)  {
 		pieceBB[color] |= u64;
 		pieceBB[piece] |= u64;
