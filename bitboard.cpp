@@ -6,7 +6,6 @@
 // Description	: Bitboard for chess. C++, Ansi-style
 //============================================================================
 
-
 #include "chessboardio.h"
 //#include "tool.h"
 #include "cboard.h"
@@ -17,6 +16,7 @@
 #include "piece\rook.h"
 #include "piece\bishop.h"
 #include "piece\queen.h"
+#include "piece\castle.h"
 #include <map>
 #include <string>
 using namespace std;
@@ -144,8 +144,6 @@ uint64_t westOne(uint64_t b) { return (b >> 1) & notHFile; }
 uint64_t soWeOne(uint64_t b) { return (b >> 9) & notHFile; }
 uint64_t noWeOne(uint64_t b) { return (b << 7) & notHFile; }
 
-
-
 //--- Pawn attacks ----------------------------
 
 uint64_t wPawnAttacks(uint64_t wb, uint64_t bb, uint64_t wPawns) {
@@ -228,7 +226,6 @@ uint64_t knightAttacks(ChessboardIO::enumSquare sq) {
 	return arrKnightAttacks[sq];
 }
 //--------------------------------------------
-
 
 static struct {
 	uint64_t bitMask;			// 1 << sq for convenience
@@ -406,9 +403,9 @@ struct Move {
 	uint8_t from;
 	uint8_t to;
 	CBoard::EnumPiece type;
-	bool castle;
+	bool castleShort;
+	bool castleLong;
 	bool passant; //Takes a unccupied square;
-
 
 /*
 	uint64_t bitMask(int sq) {
@@ -426,12 +423,136 @@ struct Move {
 		this->from = from;
 		this->to = to;
 		this->type = type;
+
 	}
 
 	void print() {
 		cout << ChessboardIO::getSquare(from) << "-" << ChessboardIO::getSquare(to) << " piece: " << type << endl;
 	}
 };
+
+/*
+U64 CBoard::attacksToKing(enumSquare squareOfKing, enumColor colorOfKing) {
+   U64 opPawns, opKnights, opRQ, opBQ;
+   opPawns     = pieceBB[nBlackPawn   - colorOfKing];
+   opKnights   = pieceBB[nBlackKnight - colorOfKing];
+   opRQ = opBQ = pieceBB[nBlackQueen  - colorOfKing];
+   opRQ       |= pieceBB[nBlackRook   - colorOfKing];
+   opBQ       |= pieceBB[nBlackBishop - colorOfKing];
+   return (arrPawnAttacks[colorOfKing][squareOfKing] & opPawns)
+        | (arrKnightAttacks[squareOfKing]            & opKnights)
+        | (bishopAttacks (occupiedBB, squareOfKing)  & opBQ)
+        | (rookAttacks   (occupiedBB, squareOfKing)  & opRQ);
+}
+*/
+
+bool validateSq(CBoard* cboard, Piece** pieceArray, int sq) {
+	uint64_t knightAttacks = pieceArray[1]->attacks(cboard, sq);
+	uint64_t bishopAttacks = pieceArray[4]->attacks(cboard, sq);
+	uint64_t rookAttacks = pieceArray[3]->attacks(cboard, sq);
+	uint64_t queenAttacks = bishopAttacks | rookAttacks;
+	uint64_t enemyOcc = cboard->getPieceSet(CBoard::occ, cboard->getEnemyColor());
+
+	if ((knightAttacks | queenAttacks) & enemyOcc) {
+		cout << "potentiallyCheck" << endl;
+
+		uint64_t blackKnights = cboard->getPieceSet(CBoard::nKnight, CBoard::black);
+		uint64_t blackBishops = cboard->getPieceSet(CBoard::nBishop, CBoard::black);
+		uint64_t blackRooks = cboard->getPieceSet(CBoard::nRook, CBoard::black);
+		uint64_t blackQueen = cboard->getPieceSet(CBoard::nQueen, CBoard::black);
+
+		cout << "blackKnights " << (bool) ((knightAttacks & blackKnights)) << endl;
+		cout << "blackBishops " << (bool) ((bishopAttacks & blackBishops)) << endl;
+		cout << "blackRooks " << (bool) ((rookAttacks & blackRooks)) << endl;
+		cout << "blackQueens " << (bool) ((queenAttacks & blackQueen)) << endl;
+
+		return (knightAttacks & blackKnights)
+				| (bishopAttacks & blackBishops)
+				| (rookAttacks & blackRooks)
+				| (queenAttacks & blackQueen);
+
+	}
+	return false;
+}
+
+
+bool check(CBoard* cboard, Piece** pieceArray) {
+	uint64_t king64 = cboard->getPieceSet(CBoard::nKing, CBoard::white);
+	int kingSq = __builtin_ctzll(king64);
+	return validateSq(cboard, pieceArray, kingSq);
+}
+
+bool castleDisabled = false;
+bool shortCastleDisabled = false;
+bool longCastelDisabled = false;
+// White castle constants
+uint64_t whiteCastleKing = (uint64_t) 1 << 4;
+
+// Black castle constants
+uint64_t blackCastleKing = (uint64_t) 1 << 4;
+
+// Short white castle constants.
+uint64_t whiteShortCastle = 0b11 << 1;
+uint64_t whiteShortCastleRook = (uint64_t) 1;
+
+// Long white castle constants.
+uint64_t whiteLongCastle = 0b11 << 1;
+uint64_t whiteLongCastleRook = (uint64_t) 1;
+
+// Short black castle constants.
+uint64_t blackShortCastle = 0b11 << 1;
+uint64_t blackShortCastleRook = (uint64_t) 1;
+
+// Long black castle constants.
+uint64_t blackLongCastle = 0b11 << 1;
+uint64_t blackLongCastleRook = (uint64_t) 1;
+
+//boolm castle()
+
+bool checkOccSquares(uint64_t *sqrs,  Piece** pieceArray, CBoard* cboard) {
+	while (*sqrs) {
+		int sq = __builtin_ctzll(*sqrs);
+		if (validateSq(cboard, pieceArray, sq)) {
+			return true;
+		}
+		*sqrs &= (*sqrs - 1);
+	}
+	return false;
+}
+
+bool castleWhite(CBoard* cboard, Piece** pieceArray) {
+	// castleDisabled --> return
+
+	uint64_t whiteKingPosition = cboard->getPieceSet(CBoard::nKing, CBoard::white);
+	bool whiteKingCastleHeuristics = whiteKingPosition & whiteCastleKing; // castleDisabled = true;
+		//whiteKingCastleHeuristics == false --> No castle allowed.
+		//castleDisabled = true;
+
+	uint64_t whiteRook = cboard->getPieceSet(CBoard::nRook, CBoard::white);
+	bool whiteShortCastleHeuristics = whiteRook & whiteShortCastleRook; // shortCastleDisabled = true;
+		//whiteShortCastleHeuristics == false --> No short castle allowed
+		//shortCastleDisabled = true;
+
+	bool whiteLongCastleHeuristics = whiteRook & whiteShortCastleRook; // shortCastleDisabled = true;
+		//whiteLongCastleHeuristics == false --> No short castle allowed
+		//longCastleDisabled = true;
+
+	uint64_t occ = cboard->getPieceSet(CBoard::occ);
+
+	if (!(occ & whiteShortCastle)) {
+		uint64_t criticalSquaresShort = whiteCastleKing | whiteShortCastle;
+		checkOccSquares(&criticalSquaresShort, pieceArray, cboard);
+	}
+	// else --> No short castle allowed
+
+	if (!(occ & whiteLongCastle)) {
+		uint64_t criticalSquaresLong = whiteCastleKing | whiteLongCastle;
+		checkOccSquares(&criticalSquaresLong, pieceArray, cboard);
+	}
+	// else --> No long castle allowed
+}
+
+
 
 //Test by print all moves
 void generateMoves(CBoard *cboard/*, Piece *pieceArray[]*/) {
@@ -449,95 +570,49 @@ void generateMoves(CBoard *cboard/*, Piece *pieceArray[]*/) {
 	pieceArray[3] = new Rook();
 	pieceArray[4] = new Bishop();
 	pieceArray[5] = new Queen();
+	pieceArray[6] = new Castle();
+	//pieceArray[7] = new Passant();
 
 	// --- CRITICAL SQUARES ---
 	// Check!
-	{
-		uint64_t king64 = cboard->getPieceSet(CBoard::nKing, CBoard::white);
-		int kingSq = __builtin_ctzll(king64);
-
-		uint64_t knightAttacks = pieceArray[1]->attacks(cboard, kingSq);
-		//cout << (int)CBoard::nBishop << endl;
-		uint64_t bishopAttacks = pieceArray[4]->attacks(cboard, kingSq);
-		uint64_t rookAttacks = pieceArray[3]->attacks(cboard, kingSq);
-		uint64_t queenAttacks = bishopAttacks | rookAttacks;
-
-		uint64_t blackOcc = cboard->getPieceSet(CBoard::occ, CBoard::black);
-		bool potentiallyCheck = ((knightAttacks | queenAttacks) & blackOcc) > 0;
-
-		if ((knightAttacks | queenAttacks) & blackOcc) {
-			uint64_t blackKnights = cboard->getPieceSet(CBoard::nKnight, CBoard::black);
-			uint64_t blackBishops = cboard->getPieceSet(CBoard::nBishop, CBoard::black);
-			uint64_t blackRooks = cboard->getPieceSet(CBoard::nRook, CBoard::black);
-			uint64_t blackQueen = cboard->getPieceSet(CBoard::nQueen, CBoard::black);
-
-			bool check = (knightAttacks & blackKnights) | (bishopAttacks & blackBishops)
-					| (rookAttacks & blackRooks) | (queenAttacks & blackQueen);
-
-			cout << "blackKnights " << (bool) (knightAttacks & blackKnights) << endl;
-			cout << "blackBishops " << (bool) (bishopAttacks & blackBishops) << endl;
-			cout << "blackRooks " << (bool) (rookAttacks & blackRooks) << endl;
-			cout << "blackQueens " << (bool) (queenAttacks & blackQueen) << endl;
-			cout << check << endl;
-		}
-		cout << "potentiallyCheck" << endl;
-		cout << potentiallyCheck << endl;
-	}
-
-	{
-		bool castleDisabled = false;
-		bool shortCastleDisabled = false;
-		bool longCastelDisabled = false;
-
-		uint64_t whiteShortCastle = 0b11 << 1;
-		uint64_t whiteLongCastle = 0b111 << 5;
-		uint64_t whiteShortCastleRook = (uint64_t) 1;
-		uint64_t whiteLongCastleRook = (uint64_t) 1 << 8;
-		uint64_t whiteCastleKing = (uint64_t) 1 << 4;
-
-		uint64_t occ = cboard->getPieceSet(CBoard::occ);
-		uint64_t whiteShortRook = cboard->getPieceSet(CBoard::nRook,
-				CBoard::white);
-		uint64_t whiteLongRook = cboard->getPieceSet(CBoard::nRook,
-				CBoard::white);
-		uint64_t whiteKingPosition = cboard->getPieceSet(CBoard::nKing,
-				CBoard::white);
-
-		bool b0 = whiteKingPosition & whiteCastleKing; // castleDisabled = true;
-		bool b1 = whiteShortRook & whiteShortCastleRook; // shortCastleDisabled = true;
-		bool b2 = whiteLongRook & whiteLongCastleRook; // longCastelDisabled = true;
-		b1 |= occ & whiteShortCastle;
-		b2 |= occ & whiteLongCastle;
-
-		// King in check
-		// whiteShortCastle is occupied by enemy pieces
-		// whiteLongCastle is occupied by enemy pieces
-		// If enemy pieces can reach critical squares then check waring and pullback.
-	}
+	bool isCheck = check(cboard, pieceArray);
+	cout << "Is check: " << isCheck << endl;
 
 	Move moves[256];
 	uint8_t index = 0;
-	for (int i = 0; i < 6; i++) {
+	for (int i = 0; i < 7; i++) {
 		CBoard::EnumPiece type = pieceArray[i]->type();
-		uint64_t pieces = cboard->getPieceSet(type, cboard->color);
-		while (pieces > 0) {
+		uint64_t pieces = cboard->getPieceSet(type, cboard->friendlyColor);
+
+		while (pieces) {
+	//		if (i == 6)
+				ChessboardIO::printBigBoard(pieces);
+
 			int sq = __builtin_ctzll(pieces);
 			pieces &= (pieces - 1);
 			uint64_t attacks = pieceArray[i]->attacks(cboard, sq);
-			attacks &= cboard->getEmpty(cboard->color);
+			// if type = rook, sq = rooksq, attacks = 0x111;
+			// if type = king, sq = ok, attacks = 0x0111;
+			attacks &= cboard->getEmpty(cboard->friendlyColor);
+			if (i == 6)
+				ChessboardIO::printBigBoard(pieces);
 			while (attacks > 0) {
+				if (i == 6)
+					ChessboardIO::printBigBoard(attacks);
 				int attack = __builtin_ctzll(attacks);
 				attacks &= (attacks - 1);
 				moves[index++].add(sq, attack, type);
 			}
 		}
+
 	}
+
 	cout << "Moves available:" << endl;
 	for (int i = 0; i < index; i++) {
 		moves[i].print();
 	}
 
-	for (int i = 0; i < 6; i++) {
+	for (int i = 0; i < 7; i++) {
 		delete pieceArray[i];
 	}
 
@@ -587,12 +662,12 @@ void functionTests() {
 	swapTest();
 	findFirstSet(o);
 }
+
 /*
 ostream & operator<<(ostream & out, const Pawn & point) {
    out << "(" << "point.x" << "," << "point.y" << ")";  // access private data
    return out;
 }*/
-
 
 // http://wtharvey.com/
 int main() {
@@ -609,11 +684,12 @@ int main() {
 			ChessboardIO::end };
 
 	ChessboardIO::enumSquare enumKingSquares[] = {
-			ChessboardIO::d5,
+			ChessboardIO::e1,
 			ChessboardIO::end };
 
 	ChessboardIO::enumSquare enumRookSquares[] = {
-			ChessboardIO::f7,
+			ChessboardIO::h1,
+			ChessboardIO::a1,
 			ChessboardIO::end };
 
 	ChessboardIO::enumSquare enumBishopSquares[] = {
@@ -626,16 +702,16 @@ int main() {
 
 	CBoard *cboard = new CBoard();
 
-	cboard->setPieceSet(ChessboardIO::setBoard(enumPawnSquares), CBoard::nPawn, CBoard::black);
-	cboard->setPieceSet(ChessboardIO::setBoard(enumKnightSquares), CBoard::nKnight, CBoard::black);
+	cboard->setPieceSet(ChessboardIO::setBoard(enumPawnSquares), CBoard::nPawn, CBoard::white);
+	cboard->setPieceSet(ChessboardIO::setBoard(enumKnightSquares), CBoard::nKnight, CBoard::white);
 	cboard->setPieceSet(ChessboardIO::setBoard(enumKingSquares), CBoard::nKing, CBoard::white);
-	cboard->setPieceSet(ChessboardIO::setBoard(enumRookSquares), CBoard::nRook, CBoard::black);
-	cboard->setPieceSet(ChessboardIO::setBoard(enumBishopSquares), CBoard::nBishop, CBoard::black);
-	cboard->setPieceSet(ChessboardIO::setBoard(enumQueenSquares), CBoard::nQueen, CBoard::black);
-	cboard->color = CBoard::black;
+	cboard->setPieceSet(ChessboardIO::setBoard(enumQueenSquares), CBoard::nCastle, CBoard::white);
+	cboard->setPieceSet(ChessboardIO::setBoard(enumRookSquares), CBoard::nRook, CBoard::white);
+	cboard->setPieceSet(ChessboardIO::setBoard(enumBishopSquares), CBoard::nBishop, CBoard::white);
+	cboard->setPieceSet(ChessboardIO::setBoard(enumQueenSquares), CBoard::nQueen, CBoard::white);
+	cboard->friendlyColor = CBoard::white;
 	generateMoves(cboard);
 	ChessboardIO::printBigBoard(cboard->getPieceSet(CBoard::occ));
-
 
 	delete cboard;
 

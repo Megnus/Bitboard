@@ -30,16 +30,71 @@ public:
 		nBishop,
 		nRook,
 		nQueen,
-		nKing
+		nKing,
+		nCastle
 	};
 
-	ColorType color;
+	enum CastleType {
+		none,
+		shortCastle,
+		longCastle
+	};
+
+	ColorType friendlyColor;
+	ColorType enemyColor;
 
 //	virtual ColorType getOppositeColor()
 //
 //	virtual ColorType getColor();
-//
+//https://flir.app.box.com
 //	virtual void switchColor();
+
+		//uint64_t shortCastle = 0b01;
+		//uint64_t longCastle = 0b01;
+		uint64_t shortCastle64[2];
+		uint64_t longCastle64[2];
+	// SpecialMove.cpp
+
+	// Valid Passant
+	// Extract valid passant
+
+	// -- Valid short castle
+	// Short castle is still valid
+	// Rook on place
+	// King on place
+	// Empty squares correct
+	// King has not been moved
+	// Rook has not been moved
+
+	// -- Valid long castle
+	// Long castle is still valid
+	// Rook on place
+	// King on place
+	// Empty squares correct
+	// King has not been moved
+	// Rook has not been moved
+
+	ColorType getFriendlyColor() {
+		return this->friendlyColor;
+	}
+
+	ColorType getEnemyColor() {
+		return this->enemyColor;
+	}
+
+	void toggleColor() {
+		if (this->friendlyColor == white) {
+			this->friendlyColor = black;
+			this->enemyColor = white;
+		} else {
+			this->friendlyColor = white;
+			this->enemyColor = black;
+		}
+	}
+
+	uint64_t getShortCastleSet(ColorType color) {
+		return shortCastle64[(int)color];
+	}
 
 	void setPieceSet(uint64_t u64, EnumPiece piece, ColorType color)  {
 		pieceBB[color] |= u64;

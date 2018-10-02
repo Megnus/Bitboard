@@ -43,7 +43,7 @@ public:
 	virtual ~Pawn();
 
 	uint64_t attacks(CBoard *cboard, int sq) {
-		return cboard->color == CBoard::white ? whitePawnAttacks(cboard, sq) : blackPawnAttacks(cboard, sq);
+		return cboard->friendlyColor == CBoard::white ? whitePawnAttacks(cboard, sq) : blackPawnAttacks(cboard, sq);
 	};
 
 	CBoard::EnumPiece type() {

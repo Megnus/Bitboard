@@ -105,5 +105,5 @@ class ChessboardIO {
 			}
 		}
 };
-//}
+
 #endif /* RENDER_H_ */

@@ -8,7 +8,7 @@
 #include "cboard.h"
 
 CBoard::CBoard() {
-	this->color = white;
+	this->friendlyColor = white;
 	for (int index = 0; index < 12; index++) {
 		pieceBB[index] = 0;
 	}

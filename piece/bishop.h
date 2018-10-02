@@ -76,7 +76,6 @@ public:
 	uint64_t attacks(CBoard *cboard, int sq) {
 		uint64_t occ = cboard->getPieceSet(CBoard::occ) ^ bitMaskEx[sq];
 		uint64_t att = antiDiagAttacks(occ, sq) | diagonalAttacks(occ, sq);
-		ChessboardIO::printBigBoard(att);
 		return att;
 	}
 
