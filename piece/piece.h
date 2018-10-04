@@ -19,7 +19,6 @@ protected:
 
 public:
 
-
 	Piece() {
 		for (int sq = 0; sq < 64; sq++) {
 			bitMaskEx[sq] = bitMask(sq);

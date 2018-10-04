@@ -11,55 +11,16 @@
 
 class King: public Piece {
 private:
-	bool castleEnable[2];
-	bool castleShortEnable[2];
-	bool castleLongEnable[2];
+	enum CastleType {
+		Long,
+		Short,
+		Both
+	};
 
-	uint64_t castleKingPosition[2];
-	uint64_t castleShortRookPosition[2];
-	uint64_t castleLongRookPosition[2];
-	uint64_t castleShortEmptySquares[2];
-	uint64_t castleLongEmptySquares[2];
-	uint64_t castleShortOccSquares[2];
-	uint64_t castleLongOccSquares[2];
-
-	void castleConstants() {
-		castleEnable[CBoard::white] = true;
-		castleEnable[CBoard::black] = true;
-
-		castleShortEnable[CBoard::white] = true;
-		castleShortEnable[CBoard::black] = true;
-
-		castleLongEnable[CBoard::white] = true;
-		castleLongEnable[CBoard::black] = true;
-
-		castleKingPosition[CBoard::white] = (uint64_t) 1 << 4;
-		castleKingPosition[CBoard::black] = (uint64_t) 1 << 4;
-
-		castleShortRookPosition[CBoard::white] = (uint64_t) 1;
-		castleShortRookPosition[CBoard::black] = (uint64_t) 1;
-
-		castleLongRookPosition[CBoard::white] = (uint64_t) 1;
-		castleLongRookPosition[CBoard::black] = (uint64_t) 1;
-
-		castleShortRookPosition[CBoard::white] = (uint64_t) 1;
-		castleShortRookPosition[CBoard::black] = (uint64_t) 1;
-
-		castleLongRookPosition[CBoard::white] = (uint64_t) 1;
-		castleLongRookPosition[CBoard::black] = (uint64_t) 1;
-
-		castleShortEmptySquares[CBoard::white] = (uint64_t) 0b111 << 1;
-		castleShortEmptySquares[CBoard::black] = (uint64_t) 0b111 << 1;
-
-		castleLongOccSquares[CBoard::white] = (uint64_t) 0b1111 << 5;
-		castleLongOccSquares[CBoard::black] = (uint64_t) 0b1111 << 5;
-
-		castleShortOccSquares[CBoard::white] = castleShortEmptySquares[CBoard::white];
-		castleShortOccSquares[CBoard::black] = castleShortEmptySquares[CBoard::black];
-
-		castleLongOccSquares[CBoard::white] = (uint64_t) 0b111 << 5;
-		castleLongOccSquares[CBoard::black] = (uint64_t) 0b111 << 5;
-	}
+	enum PositionType {
+		Start,
+		End
+	};
 
 	uint64_t arrKingAttacks[64];
 
@@ -82,16 +43,69 @@ private:
 		}
 	}
 
+	bool castleEnable[2][3];
+	uint64_t castleKingPosition[2][2][2];
+	uint64_t castleRookPosition[2][2][2];
+	uint64_t castleEmptySquares[2][2];
+	uint64_t castleSquares[2][2];
+
+	void castelConstants() {
+		castleEnable[CBoard::white][Both] = true;
+		castleEnable[CBoard::black][Both] = true;
+		castleEnable[CBoard::white][Short] = true;
+		castleEnable[CBoard::black][Short] = true;
+		castleEnable[CBoard::white][Long] = true;
+		castleEnable[CBoard::black][Long] = true;
+
+		castleKingPosition[CBoard::white][Both][Start] = (uint64_t) 1 << 4;
+		castleKingPosition[CBoard::black][Both][Start]  = (uint64_t) 1 << 60;
+
+		castleKingPosition[CBoard::white][Short][End] = (uint64_t) 1 << 6;
+		castleKingPosition[CBoard::black][Short][End] = (uint64_t) 1 << 62;
+		castleKingPosition[CBoard::white][Long][End] = (uint64_t) 1 << 2;
+		castleKingPosition[CBoard::black][Long][End] = (uint64_t) 1 << 58;
+
+		castleRookPosition[CBoard::white][Short][Start] = (uint64_t) 1 << 7;
+		castleRookPosition[CBoard::black][Short][Start] = (uint64_t) 1 << 63;
+		castleRookPosition[CBoard::white][Long][Start] = (uint64_t) 1 << 0;
+		castleRookPosition[CBoard::black][Long][Start] = (uint64_t) 1 << 56;
+
+		castleRookPosition[CBoard::white][Short][End] = (uint64_t) 1 << 5;
+		castleRookPosition[CBoard::black][Short][End] = (uint64_t) 1 << 61;
+		castleRookPosition[CBoard::white][Long][End] = (uint64_t) 1 << 3;
+		castleRookPosition[CBoard::black][Long][End] = (uint64_t) 1 << 59;
+
+		castleEmptySquares[CBoard::white][Short] = (uint64_t) 0b111 << 1;
+		castleEmptySquares[CBoard::black][Short] = (uint64_t) 0b111 << 57;
+		castleEmptySquares[CBoard::white][Long] = (uint64_t) 0b11 << 5;
+		castleEmptySquares[CBoard::black][Long] = (uint64_t) 0b11 << 61;
+	}
+
+	uint64_t arrKingPosition[64][2];
+
+	void castleAttacks() {
+		for (int sq = 0; sq < 64; sq++) {
+			for (int color = 0; color < 2; color++) {
+				if (bitMaskEx[sq] == castleKingPosition[color][Both][Start]) {
+					arrKingPosition[sq][color] = castleKingPosition[color][Both][Start];
+				}
+			}
+		}
+	}
+
 public:
 	King() {
-		castleConstants();
+		castelConstants();
+		castleAttacks();
 		kingAttacks();
 	}
 
 	virtual ~King();
 
 	uint64_t attacks(CBoard *cboard, int sq) {
-		return arrKingAttacks[sq];
+		uint64_t attack64 = arrKingAttacks[sq] | castleAttacks(cboard, sq);
+		ChessboardIO::printBigBoard(attack64);
+		return attack64; //arrKingAttacks[sq] | castleAttacks(cboard, sq);
 	}
 
 	CBoard::EnumPiece type() {
@@ -101,6 +115,32 @@ public:
 
 	string toString() {
 		return "king";
+	}
+
+	uint64_t castleAttacks(CBoard::ColorType color, CastleType type, uint64_t occ, uint64_t rooks) {
+		if (castleEnable[color][type]) {
+			if (rooks & castleRookPosition[color][type][Start]) {
+				if (!(occ & castleEmptySquares[color][type])) {
+					return castleKingPosition[color][type][End];
+				}
+			} else {
+				castleEnable[color][type] = false;
+			}
+		}
+		return 0;
+	}
+
+	uint64_t castleAttacks(CBoard *cboard, int sq) {
+		CBoard::ColorType color = cboard->friendlyColor;
+		uint64_t occ = cboard->getPieceSet(CBoard::occ);
+		uint64_t rooks = cboard->getPieceSet(CBoard::nRook);
+
+		if (!(castleEnable[color][Both] && arrKingPosition[sq][color])) {
+			castleEnable[color][Both] = false;
+			return 0;
+		}
+
+		return castleAttacks(color, Short, occ, rooks) | castleAttacks(color, Long, occ, rooks);
 	}
 };
 

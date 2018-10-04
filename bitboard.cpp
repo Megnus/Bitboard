@@ -550,6 +550,7 @@ bool castleWhite(CBoard* cboard, Piece** pieceArray) {
 		checkOccSquares(&criticalSquaresLong, pieceArray, cboard);
 	}
 	// else --> No long castle allowed
+	return false;
 }
 
 
@@ -586,7 +587,7 @@ void generateMoves(CBoard *cboard/*, Piece *pieceArray[]*/) {
 
 		while (pieces) {
 	//		if (i == 6)
-				ChessboardIO::printBigBoard(pieces);
+				//ChessboardIO::printBigBoard(pieces);
 
 			int sq = __builtin_ctzll(pieces);
 			pieces &= (pieces - 1);
@@ -594,11 +595,11 @@ void generateMoves(CBoard *cboard/*, Piece *pieceArray[]*/) {
 			// if type = rook, sq = rooksq, attacks = 0x111;
 			// if type = king, sq = ok, attacks = 0x0111;
 			attacks &= cboard->getEmpty(cboard->friendlyColor);
-			if (i == 6)
-				ChessboardIO::printBigBoard(pieces);
+			/*if (i == 6)
+				ChessboardIO::printBigBoard(pieces);*/
 			while (attacks > 0) {
-				if (i == 6)
-					ChessboardIO::printBigBoard(attacks);
+				/*if (i == 6)
+					ChessboardIO::printBigBoard(attacks);*/
 				int attack = __builtin_ctzll(attacks);
 				attacks &= (attacks - 1);
 				moves[index++].add(sq, attack, type);
@@ -609,7 +610,7 @@ void generateMoves(CBoard *cboard/*, Piece *pieceArray[]*/) {
 
 	cout << "Moves available:" << endl;
 	for (int i = 0; i < index; i++) {
-		moves[i].print();
+		//moves[i].print();
 	}
 
 	for (int i = 0; i < 7; i++) {
